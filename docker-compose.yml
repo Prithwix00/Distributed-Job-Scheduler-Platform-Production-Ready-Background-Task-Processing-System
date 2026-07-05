@@ -1,0 +1,63 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: scheduler
+      POSTGRES_PASSWORD: scheduler
+      POSTGRES_DB: scheduler
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scheduler"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg2://scheduler:scheduler@db:5432/scheduler
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      ENVIRONMENT: production
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    # Apply migrations, then serve. Only the api service runs migrations so
+    # the worker/scheduler replicas never race on schema changes.
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  scheduler:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg2://scheduler:scheduler@db:5432/scheduler
+      SCHEDULER_TICK_SECONDS: "2"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: python -m app.runtime.scheduler
+
+  worker:
+    build: ./backend
+    environment:
+      SCHEDULER_API_URL: http://api:8000
+      DATABASE_URL: postgresql+psycopg2://scheduler:scheduler@db:5432/scheduler
+      WORKER_CONCURRENCY: "4"
+    depends_on:
+      - api
+    command: python -m app.runtime.worker --base-url http://api:8000 --concurrency 4
+    deploy:
+      replicas: 2   # two workers to demonstrate distributed, contention-free claiming
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - api
+    ports:
+      - "5173:80"
+
+volumes:
+  pgdata:

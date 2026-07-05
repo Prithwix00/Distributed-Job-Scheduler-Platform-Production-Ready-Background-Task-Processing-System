@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #0b0f14;
+  color: #e6ebf2;
+  font-family: "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Thin, quiet scrollbars fitting the console aesthetic */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #2a333f; border-radius: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+.mono { font-family: "JetBrains Mono", monospace; }
+
+/* State pill base */
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 2px 8px; border-radius: 999px; font-size: 11px;
+  font-family: "JetBrains Mono", monospace; letter-spacing: 0.02em;
+  border: 1px solid transparent; text-transform: lowercase;
+}
+.dot { width: 6px; height: 6px; border-radius: 999px; }
+
+.card {
+  background: #11161d; border: 1px solid #1e2630; border-radius: 12px;
+}
+
+.btn {
+  font-size: 13px; font-weight: 500; padding: 7px 12px; border-radius: 8px;
+  border: 1px solid #2a333f; background: #171d26; color: #e6ebf2; cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.btn:hover { background: #1e2630; border-color: #37424f; }
+.btn-primary { background: #2563eb; border-color: #2563eb; color: white; }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-danger { border-color: #4a2327; color: #ff8b8f; }
+.btn-danger:hover { background: #2a1518; }
+
+.input {
+  width: 100%; background: #0b0f14; border: 1px solid #2a333f; border-radius: 8px;
+  padding: 8px 10px; color: #e6ebf2; font-size: 13px; outline: none;
+}
+.input:focus { border-color: #3b82f6; }
+
+.field-label { font-size: 11px; color: #8b97a7; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; display: block; }
+
+table { border-collapse: collapse; width: 100%; }
+th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #8b97a7; font-weight: 600; padding: 8px 12px; border-bottom: 1px solid #1e2630; }
+td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #141a22; }
+tr:hover td { background: #10151c; }
+
+/* Layout */
+.app { display: flex; min-height: 100vh; }
+.sidebar { width: 220px; flex-shrink: 0; border-right: 1px solid #1e2630; padding: 20px 14px; position: sticky; top: 0; height: 100vh; box-sizing: border-box; }
+.brand { font-weight: 700; font-size: 15px; letter-spacing: 0.02em; margin-bottom: 2px; }
+.brand-sub { font-size: 11px; color: #8b97a7; margin-bottom: 22px; font-family: "JetBrains Mono", monospace; }
+.nav { display: flex; flex-direction: column; gap: 2px; }
+.nav a { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 8px; color: #b6c0cd; text-decoration: none; font-size: 13.5px; font-weight: 500; }
+.nav a:hover { background: #151b23; color: #e6ebf2; }
+.nav a.active { background: #172033; color: #7ea8ff; }
+.content { flex: 1; padding: 26px 30px; max-width: 1200px; }
+.page-title { font-size: 20px; font-weight: 650; margin: 0 0 2px; }
+.page-sub { color: #8b97a7; font-size: 13px; margin-bottom: 22px; }
+.grid { display: grid; gap: 14px; }
+.row { display: flex; gap: 10px; align-items: center; }
+.between { display: flex; justify-content: space-between; align-items: center; }
+.muted { color: #8b97a7; }
+.link { color: #7ea8ff; text-decoration: none; cursor: pointer; }
+.link:hover { text-decoration: underline; }
+.tag { font-family: "JetBrains Mono", monospace; font-size: 11px; background: #0b0f14; border: 1px solid #1e2630; border-radius: 6px; padding: 1px 6px; color: #9aa7b6; }
+.health-dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; }
+
+/* Sidebar collapses on narrow screens */
+@media (max-width: 760px) {
+  .app { flex-direction: column; }
+  .sidebar { width: auto; height: auto; position: static; border-right: none; border-bottom: 1px solid #1e2630; }
+  .nav { flex-direction: row; flex-wrap: wrap; }
+  .content { padding: 18px; }
+}

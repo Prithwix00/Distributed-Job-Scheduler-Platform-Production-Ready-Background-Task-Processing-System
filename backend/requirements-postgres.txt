@@ -1,0 +1,4 @@
+# Postgres deployment adds the database driver on top of the core deps.
+# Used by the Docker image, which has the build tools to install it.
+-r requirements.txt
+psycopg2-binary==2.9.10
