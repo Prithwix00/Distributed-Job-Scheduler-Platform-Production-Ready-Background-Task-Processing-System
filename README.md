@@ -7,7 +7,7 @@ Run the file : run-local.bat
   API docs  : http://localhost:8000/docs
 
 
-# The demo login is: ( for better showcase)
+The demo login is: ( for better showcase)
 
 ( you can create new as well)
 
