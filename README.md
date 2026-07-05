@@ -14,6 +14,44 @@ Run the file : run-local.bat
 Email: demo@example.com
 Password: password123
 
+### Step 1 — Clone the repo
+
+```bash
+git clone https://github.com/Prithwix00/Distributed-Job-Scheduler-Platform-Production-Ready-Background-Task-Processing-System.git
+```
+
+### Step 2 — Go into the project folder
+
+```bash
+cd Distributed-Job-Scheduler-Platform-Production-Ready-Background-Task-Processing-System/scheduler
+```
+
+### Step 3 — Run it (Windows)
+
+Double-click `run-local.bat`
+
+Or from terminal:
+
+```bash
+run-local.bat
+```
+
+That's it. It installs everything automatically on first run and opens all four services.
+
+---
+
+## What opens
+
+| Service | URL |
+|---|---|
+| Dashboard | http://localhost:5173 |
+| API docs (Swagger) | http://localhost:8000/docs |
+
+---
+
+## Demo login
+Email:    demo@example.com
+Password: password123
 
 
 # Distributed Job Scheduler
