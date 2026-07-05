@@ -33,9 +33,10 @@ codebase that is easy to reason about.
 
 ## Table of contents
 
-- [Architecture at a glance](#architecture-at-a-glance)
-- [Quick start (Docker)](#quick-start-docker)
+- [System overview](#system-overview)
+- [Screenshots](#screenshots)
 - [Quick start (local, no Docker)](#quick-start-local-no-docker)
+- [Quick start (Docker)](#quick-start-docker)
 - [Project layout](#project-layout)
 - [Core concepts](#core-concepts)
 - [API summary](#api-summary)
@@ -44,10 +45,49 @@ codebase that is easy to reason about.
 
 ---
 
-## Architecture at a glance
+## System overview
 
-Five cooperating services share one PostgreSQL database, which acts as both the
-system of record and the job queue:
+The platform is composed of five services around a single PostgreSQL database.
+Postgres is deliberately both the system of record and the queue substrate: its
+row-level locking (`FOR UPDATE SKIP LOCKED`) is what makes distributed claiming
+correct without a separate broker.
+
+```mermaid
+flowchart TB
+    subgraph clients[Clients]
+        UI[React Dashboard]
+        SDK[API consumers / CI]
+    end
+
+    subgraph api_tier[API tier]
+        API[FastAPI REST API]
+    end
+
+    subgraph control[Control plane]
+        SCHED[Scheduler process]
+    end
+
+    subgraph workers[Worker fleet]
+        W1[Worker 1]
+        W2[Worker 2]
+        WN[Worker N]
+    end
+
+    DB[(PostgreSQL)]
+
+    UI -->|JWT REST| API
+    SDK -->|JWT REST| API
+    API -->|read/write| DB
+    SCHED -->|promote, cron, reap| DB
+    W1 -->|register, claim, heartbeat, result| API
+    W2 --> API
+    WN --> API
+    API -->|SELECT FOR UPDATE SKIP LOCKED| DB
+```
+
+Workers talk to the database through the API rather than connecting directly.
+This keeps a single authorization and validation boundary, lets workers run
+anywhere that can reach the API over HTTP and keeps the worker process thin.
 
 - **API** (FastAPI) serves the REST interface for users and workers.
 - **Scheduler** is a single process that owns all time-based transitions:
@@ -58,39 +98,16 @@ system of record and the job queue:
 - **PostgreSQL** stores everything and provides the row-level locking that makes
   claiming safe.
 
-The full diagram and control flow live in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+The full component responsibilities, control flow and reliability model live in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ---
 
-## Quick start (Docker)
+## Screenshots
 
-The fastest path. Requires Docker with Compose v2.
-
-```bash
-cp .env.example .env          # optional: set a real JWT_SECRET
-docker compose up --build
-```
-
-This starts Postgres, runs database migrations, then brings up the API, the
-scheduler, two workers and the dashboard. When it is running:
-
-- Dashboard: http://localhost:5173
-- API docs (OpenAPI/Swagger): http://localhost:8000/docs
-
-Seed a demo workspace with a mix of job types:
-
-```bash
-make seed        # or: cd backend && python -m app.runtime.seed
-```
-
-Then sign in at the dashboard with `demo@example.com` / `password123`.
-
-Two worker replicas run by default so you can watch distributed, contention-free
-claiming on the Workers page. Scale them live:
-
-```bash
-docker compose up --scale worker=5
-```
+| Overview | Queue detail | Workers |
+| --- | --- | --- |
+| ![Overview dashboard](docs/screenshots/overview.png) | ![Queue detail](docs/screenshots/queue-detail.png) | ![Workers fleet](docs/screenshots/workers.png) |
 
 ---
 
@@ -144,6 +161,38 @@ The `Makefile` wraps these as `make backend-dev`, `make scheduler-dev`,
 The same code runs on SQLite for local development and PostgreSQL in production.
 The atomic claim uses `FOR UPDATE SKIP LOCKED` on Postgres with a correct
 guarded-update fallback on SQLite, so behaviour is identical in both.
+
+---
+
+## Quick start (Docker)
+
+The fastest path. Requires Docker with Compose v2.
+
+```bash
+cp .env.example .env          # optional: set a real JWT_SECRET
+docker compose up --build
+```
+
+This starts Postgres, runs database migrations, then brings up the API, the
+scheduler, two workers and the dashboard. When it is running:
+
+- Dashboard: http://localhost:5173
+- API docs (OpenAPI/Swagger): http://localhost:8000/docs
+
+Seed a demo workspace with a mix of job types:
+
+```bash
+make seed        # or: cd backend && python -m app.runtime.seed
+```
+
+Then sign in at the dashboard with `demo@example.com` / `password123`.
+
+Two worker replicas run by default so you can watch distributed, contention-free
+claiming on the Workers page. Scale them live:
+
+```bash
+docker compose up --scale worker=5
+```
 
 ---
 
